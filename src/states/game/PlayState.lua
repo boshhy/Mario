@@ -97,7 +97,7 @@ end
 ]]
 function PlayState:spawnEnemies()
     -- spawn snails in the level
-    for x = 1, self.tileMap.width do
+    for x = 3, self.tileMap.width do
 
         -- flag for whether there's ground on this column of the level
         local groundFound = false
