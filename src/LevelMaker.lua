@@ -11,6 +11,9 @@
 LevelMaker = Class{}
 
 function LevelMaker.generate(width, height)
+    -- TODO delete the following line, for testing only
+    width = 20
+    -- TODO delete ABOVE line
     local tiles = {}
     local entities = {}
     local objects = {}
@@ -21,6 +24,14 @@ function LevelMaker.generate(width, height)
     local topper = true
     local tileset = math.random(20)
     local topperset = math.random(20)
+
+    local keyColor = math.random(4)
+    local keyLocation = math.random(4, width-8)
+    local lockedBlockLocation = math.random(4, width-8)
+    while math.abs(keyLocation - lockedBlockLocation) < 8 do
+        keyLocation = math.random(4, width-8)
+        lockedBlockLocation = math.random(4, width-8)
+    end
 
     -- insert blank tables into tiles for later access
     for x = 1, height do
