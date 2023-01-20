@@ -58,7 +58,7 @@ function PlayerJumpState:update(dt)
     -- check if we've collided with any collidable game objects
     for k, object in pairs(self.player.level.objects) do
         if object:collides(self.player) then
-            if object.keyBlock then
+            if object.unlocked then
                 object.onCollide(object)
                 table.remove(self.player.level.objects, k)
                 self.player.y = object.y + object.height

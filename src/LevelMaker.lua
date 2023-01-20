@@ -25,6 +25,8 @@ function LevelMaker.generate(width, height)
     local tileset = math.random(20)
     local topperset = math.random(20)
 
+    local keyBlock = false
+    local hasKey = false
     local keyColor = math.random(4)
     local keyLocation = math.random(4, width-8)
     local lockedBlockLocation = math.random(4, width-8)
@@ -49,7 +51,7 @@ function LevelMaker.generate(width, height)
         end
 
         -- chance to just be emptiness
-        if math.random(7) == 1 and x ~= 1 then
+        if math.random(7) == 1 and x ~= 1 and x ~= keyLocation and x ~= lockedBlockLocation then
             for y = 7, height do
                 table.insert(tiles[y],
                     Tile(x, y, tileID, nil, tileset, topperset))
@@ -70,7 +72,7 @@ function LevelMaker.generate(width, height)
                 blockHeight = 2
                 
                 -- chance to generate bush on pillar
-                if math.random(8) == 1 then
+                if math.random(8) == 1 and x ~= keyLocation then
                     table.insert(objects,
                         GameObject {
                             texture = 'bushes',
@@ -92,7 +94,7 @@ function LevelMaker.generate(width, height)
                 tiles[7][x].topper = nil
             
             -- chance to generate bushes
-            elseif math.random(8) == 1 then
+            elseif math.random(8) == 1 and x ~= keyLocation then
                 table.insert(objects,
                     GameObject {
                         texture = 'bushes',
@@ -107,7 +109,7 @@ function LevelMaker.generate(width, height)
             end
 
             -- chance to spawn a block
-            if math.random(10) == 1  and x ~= 1 and x ~= 2 then
+            if math.random(2) == 1  and x ~= 1 and x ~= 2  and x ~= keyLocation and x ~= lockedBlockLocation then
                 table.insert(objects,
 
                     -- jump block
@@ -168,6 +170,120 @@ function LevelMaker.generate(width, height)
                         end
                     }
                 )
+            end
+            if x == keyLocation then
+                table.insert(objects,
+
+                    -- jump block
+                    GameObject {
+                        texture = 'jump-blocks',
+                        x = (x - 1) * TILE_SIZE,
+                        y = (blockHeight - 1) * TILE_SIZE,
+                        width = 16,
+                        height = 16,
+
+                        -- make it a random variant
+                        frame = math.random(#JUMP_BLOCKS),
+                        collidable = true,
+                        hit = false,
+                        solid = true,
+
+                        -- collision function takes itself
+                        onCollide = function(obj)
+                            -- maintain reference so we can set it to nil
+                            if not obj.hit then
+                                local key = GameObject {
+                                    texture = 'keys-and-locks',
+                                    x = (x - 1) * TILE_SIZE,
+                                    y = (blockHeight - 1) * TILE_SIZE - 4,
+                                    width = 16,
+                                    height = 16,
+                                    frame = keyColor,
+                                    collidable = true,
+                                    consumable = true,
+                                    solid = false,
+
+                                    -- gem has its own function to add to the player's score
+                                    onConsume = function(player, object)
+                                        gSounds['pickup']:play()
+                                        player.score = player.score + 100
+                                        keyBlock.unlocked = true
+                                        -- hasKey = true
+                                        -- test.keyBlock = true
+                                    end
+                                }
+                                
+                                -- make the gem move up from the block and play a sound
+                                Timer.tween(0.1, {
+                                    [key] = {y = (blockHeight - 2) * TILE_SIZE}
+                                })
+                                gSounds['powerup-reveal']:play()
+
+                                table.insert(objects, key)
+                            end
+                            obj.hit = true
+
+                            gSounds['empty-block']:play()
+                        end
+                    }
+                )
+            end
+            if x == lockedBlockLocation then
+                
+
+                    -- jump block
+                keyBlock = GameObject {
+                        texture = 'keys-and-locks',
+                        x = (x - 1) * TILE_SIZE,
+                        y = (blockHeight - 1) * TILE_SIZE,
+                        width = 16,
+                        height = 16,
+
+                        -- make it a random variant
+                        frame = keyColor + 4,
+                        collidable = true,
+                        hit = false,
+                        solid = true,
+                        unlocked = false,
+
+                        -- collision function takes itself
+                        onCollide = function(obj)
+                            -- maintain reference so we can set it to nil
+                            if not obj.unlocked then
+                                gSounds['empty-block']:play()
+                            elseif not obj.hit then
+                                local key = GameObject {
+                                    --TODO change this to flag spawn instead
+                                    texture = 'keys-and-locks',
+                                    x = (x - 1) * TILE_SIZE,
+                                    y = (blockHeight - 1) * TILE_SIZE - 4,
+                                    width = 16,
+                                    height = 16,
+                                    frame = keyColor,
+                                    collidable = true,
+                                    consumable = true,
+                                    solid = false,
+
+                                    -- gem has its own function to add to the player's score
+                                    onConsume = function(player, object)
+                                        gSounds['pickup']:play()
+                                        player.score = player.score + 100
+                                    end
+                                }
+                                
+                                -- make the gem move up from the block and play a sound
+                                Timer.tween(0.1, {
+                                    [key] = {y = (blockHeight - 2) * TILE_SIZE}
+                                })
+                                gSounds['powerup-reveal']:play()
+
+                                table.insert(objects, key)
+                                obj.hit = true
+                            end
+                            gSounds['empty-block']:play()
+                        end
+                    }
+                    table.insert(objects, keyBlock)
             end
         end
     end
