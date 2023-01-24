@@ -278,8 +278,8 @@ function LevelMaker.generate(width, height)
                                 local flag = GameObject {
                                     --TODO change this to flag spawn instead
                                     texture = 'flags',
-                                    x = 6 + (width - 2) * TILE_SIZE,
-                                    y = 8 + (1-4) * TILE_SIZE,
+                                    x = 8 + (width - 2) * TILE_SIZE,
+                                    y = 5 + (1-4) * TILE_SIZE,
                                     width = 16,
                                     height = 16,
                                     frame = 7 + 9 * (math.random(4) - 1),
@@ -299,7 +299,7 @@ function LevelMaker.generate(width, height)
                                     [pole] = {y = (poleY - 3) * TILE_SIZE}
                                 })
                                 Timer.tween(0.5, {
-                                    [flag] = {y = (poleY - 3) * TILE_SIZE}
+                                    [flag] = {y = 5 + (poleY - 3) * TILE_SIZE}
                                 })
                                 gSounds['powerup-reveal']:play()
 
