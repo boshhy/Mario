@@ -12,7 +12,7 @@ LevelMaker = Class{}
 
 function LevelMaker.generate(width, height)
     -- TODO delete the following line, for testing only
-    width = 20
+    width = 16
     -- TODO delete ABOVE line
     local tiles = {}
     local entities = {}
@@ -28,11 +28,12 @@ function LevelMaker.generate(width, height)
     local keyBlock = false
     local hasKey = false
     local keyColor = math.random(4)
-    local keyLocation = math.random(4, width-8)
-    local lockedBlockLocation = math.random(4, width-8)
-    while math.abs(keyLocation - lockedBlockLocation) < 8 do
-        keyLocation = math.random(4, width-8)
-        lockedBlockLocation = math.random(4, width-8)
+    --TODO change back
+    local keyLocation = math.random(2, width-4)
+    local lockedBlockLocation = math.random(2, width-8)
+    while math.abs(keyLocation - lockedBlockLocation) < 2 do
+        keyLocation = math.random(2, width-2)
+        lockedBlockLocation = math.random(2, width-4)
     end
 
     -- insert blank tables into tiles for later access
@@ -51,7 +52,7 @@ function LevelMaker.generate(width, height)
         end
 
         -- chance to just be emptiness
-        if math.random(7) == 1 and x ~= 1 and x ~= keyLocation and x ~= lockedBlockLocation then
+        if math.random(7) == 1 and x ~= 1 and x ~= keyLocation and x ~= lockedBlockLocation and x ~= width - 1 then
             for y = 7, height do
                 table.insert(tiles[y],
                     Tile(x, y, tileID, nil, tileset, topperset))
@@ -109,7 +110,7 @@ function LevelMaker.generate(width, height)
             end
 
             -- chance to spawn a block
-            if math.random(2) == 1  and x ~= 1 and x ~= 2  and x ~= keyLocation and x ~= lockedBlockLocation then
+            if math.random(2) == 1  and x ~= 1 and x ~= 2  and x ~= keyLocation and x ~= lockedBlockLocation and x ~= width - 1 then
                 table.insert(objects,
 
                     -- jump block
@@ -252,14 +253,18 @@ function LevelMaker.generate(width, height)
                             if not obj.unlocked then
                                 gSounds['empty-block']:play()
                             elseif not obj.hit then
-                                local key = GameObject {
+                                poleY = 6
+                                if tiles[6][width-1].id == TILE_ID_GROUND then
+                                    poleY = 4
+                                end
+                                local pole = GameObject {
                                     --TODO change this to flag spawn instead
-                                    texture = 'keys-and-locks',
-                                    x = (x - 1) * TILE_SIZE,
-                                    y = (blockHeight - 1) * TILE_SIZE - 4,
+                                    texture = 'flags',
+                                    x = (width - 2) * TILE_SIZE,
+                                    y = (6-1) * TILE_SIZE,
                                     width = 16,
-                                    height = 16,
-                                    frame = keyColor,
+                                    height = 48,
+                                    frame = math.random(6),
                                     collidable = true,
                                     consumable = true,
                                     solid = false,
@@ -273,11 +278,11 @@ function LevelMaker.generate(width, height)
                                 
                                 -- make the gem move up from the block and play a sound
                                 Timer.tween(0.1, {
-                                    [key] = {y = (blockHeight - 2) * TILE_SIZE}
+                                    [pole] = {y = (poleY - 3) * TILE_SIZE}
                                 })
                                 gSounds['powerup-reveal']:play()
 
-                                table.insert(objects, key)
+                                table.insert(objects, pole)
                                 obj.hit = true
                             end
                             gSounds['empty-block']:play()
