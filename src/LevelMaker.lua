@@ -259,9 +259,9 @@ function LevelMaker.generate(width, height)
                                 end
                                 local pole = GameObject {
                                     --TODO change this to flag spawn instead
-                                    texture = 'flags',
+                                    texture = 'poles',
                                     x = (width - 2) * TILE_SIZE,
-                                    y = (6-1) * TILE_SIZE,
+                                    y = (1-4) * TILE_SIZE,
                                     width = 16,
                                     height = 48,
                                     frame = math.random(6),
@@ -275,14 +275,36 @@ function LevelMaker.generate(width, height)
                                         player.score = player.score + 100
                                     end
                                 }
+                                local flag = GameObject {
+                                    --TODO change this to flag spawn instead
+                                    texture = 'flags',
+                                    x = 6 + (width - 2) * TILE_SIZE,
+                                    y = 8 + (1-4) * TILE_SIZE,
+                                    width = 16,
+                                    height = 16,
+                                    frame = 7 + 9 * (math.random(4) - 1),
+                                    collidable = false,
+                                    consumable = false,
+                                    solid = false,
+
+                                    -- gem has its own function to add to the player's score
+                                    onConsume = function(player, object)
+                                        gSounds['pickup']:play()
+                                        player.score = player.score + 100
+                                    end
+                                }
                                 
                                 -- make the gem move up from the block and play a sound
-                                Timer.tween(0.1, {
+                                Timer.tween(0.5, {
                                     [pole] = {y = (poleY - 3) * TILE_SIZE}
+                                })
+                                Timer.tween(0.5, {
+                                    [flag] = {y = (poleY - 3) * TILE_SIZE}
                                 })
                                 gSounds['powerup-reveal']:play()
 
                                 table.insert(objects, pole)
+                                table.insert(objects, flag)
                                 obj.hit = true
                             end
                             gSounds['empty-block']:play()
