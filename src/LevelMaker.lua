@@ -11,9 +11,6 @@
 LevelMaker = Class{}
 
 function LevelMaker.generate(width, height)
-    -- TODO delete the following line, for testing only
-    width = 16
-    -- TODO delete ABOVE line
     local tiles = {}
     local entities = {}
     local objects = {}
@@ -25,15 +22,18 @@ function LevelMaker.generate(width, height)
     local tileset = math.random(20)
     local topperset = math.random(20)
 
-    local keyBlock = false
-    local hasKey = false
+    -- Get a random key color (flag will match this color)
     local keyColor = math.random(4)
-    --TODO change back
-    local keyLocation = math.random(2, width-4)
-    local lockedBlockLocation = math.random(2, width-8)
-    while math.abs(keyLocation - lockedBlockLocation) < 2 do
-        keyLocation = math.random(2, width-2)
-        lockedBlockLocation = math.random(2, width-4)
+
+    -- Pick a location to spawn key and keyBlock
+    -- not spawnable in first 2 blocks or last three blocks
+    local keyLocation = math.random(3, width-4)
+    local lockedBlockLocation = math.random(3, width-3)
+
+    -- if the location if not more the half the level width pick a different location
+    while math.abs(keyLocation - lockedBlockLocation) < width / 2 do
+        keyLocation = math.random(3, width-3)
+        lockedBlockLocation = math.random(3, width-3)
     end
 
     -- insert blank tables into tiles for later access
@@ -95,7 +95,7 @@ function LevelMaker.generate(width, height)
                 tiles[7][x].topper = nil
             
             -- chance to generate bushes
-            elseif math.random(8) == 1 and x ~= keyLocation then
+            elseif math.random(8) == 1 then
                 table.insert(objects,
                     GameObject {
                         texture = 'bushes',
@@ -109,8 +109,8 @@ function LevelMaker.generate(width, height)
                 )
             end
 
-            -- chance to spawn a block
-            if math.random(2) == 1  and x ~= 1 and x ~= 2  and x ~= keyLocation and x ~= lockedBlockLocation and x ~= width - 1 then
+            -- chance to spawn a block, cant be key or keyblock locaton or first two beginning and ending of level
+            if math.random(10) == 1  and x ~= 1 and x ~= 2  and x ~= keyLocation and x ~= lockedBlockLocation and x ~= width - 1 and x ~= width then
                 table.insert(objects,
 
                     -- jump block
@@ -172,6 +172,7 @@ function LevelMaker.generate(width, height)
                     }
                 )
             end
+            -- spawn the key inside of a jump-block
             if x == keyLocation then
                 table.insert(objects,
 
@@ -193,6 +194,7 @@ function LevelMaker.generate(width, height)
                         onCollide = function(obj)
                             -- maintain reference so we can set it to nil
                             if not obj.hit then
+                                -- Spawn a key when jump-block hit
                                 local key = GameObject {
                                     texture = 'keys-and-locks',
                                     x = (x - 1) * TILE_SIZE,
@@ -208,9 +210,8 @@ function LevelMaker.generate(width, height)
                                     onConsume = function(player, object)
                                         gSounds['pickup']:play()
                                         player.score = player.score + 100
+                                        -- Change our keyBlock to unlocked so it can be hit
                                         keyBlock.unlocked = true
-                                        -- hasKey = true
-                                        -- test.keyBlock = true
                                     end
                                 }
                                 
@@ -229,10 +230,9 @@ function LevelMaker.generate(width, height)
                     }
                 )
             end
+            -- Spawn keyBlock
             if x == lockedBlockLocation then
-                
-
-                    -- jump block
+                -- keyBlock
                 keyBlock = GameObject {
                         texture = 'keys-and-locks',
                         x = (x - 1) * TILE_SIZE,
@@ -249,16 +249,16 @@ function LevelMaker.generate(width, height)
 
                         -- collision function takes itself
                         onCollide = function(obj)
-                            -- maintain reference so we can set it to nil
+                            -- if block not unlocked then play sound
                             if not obj.unlocked then
                                 gSounds['empty-block']:play()
-                            elseif not obj.hit then
+                            -- if block has been unlocked spawn a pole and flag when hit
+                            else
                                 poleY = 6
                                 if tiles[6][width-1].id == TILE_ID_GROUND then
                                     poleY = 4
                                 end
                                 local pole = GameObject {
-                                    --TODO change this to flag spawn instead
                                     texture = 'poles',
                                     x = (width - 2) * TILE_SIZE,
                                     y = (1-4) * TILE_SIZE,
@@ -273,10 +273,14 @@ function LevelMaker.generate(width, height)
                                     onConsume = function(player, object)
                                         gSounds['pickup']:play()
                                         player.score = player.score + 100
+                                        gStateMachine:change('play', {
+                                            score = player.score,
+                                            width = width + 8,
+                                        })
                                     end
                                 }
+                                -- spawn a flag on pole, flag not consumable, player must touch pole to move on
                                 local flag = GameObject {
-                                    --TODO change this to flag spawn instead
                                     texture = 'flags',
                                     x = 8 + (width - 2) * TILE_SIZE,
                                     y = 5 + (1-4) * TILE_SIZE,
@@ -286,15 +290,9 @@ function LevelMaker.generate(width, height)
                                     collidable = false,
                                     consumable = false,
                                     solid = false,
-
-                                    -- gem has its own function to add to the player's score
-                                    onConsume = function(player, object)
-                                        gSounds['pickup']:play()
-                                        player.score = player.score + 100
-                                    end
                                 }
                                 
-                                -- make the gem move up from the block and play a sound
+                                -- make the pole and flag move down from the sky
                                 Timer.tween(0.5, {
                                     [pole] = {y = (poleY - 3) * TILE_SIZE}
                                 })
@@ -305,7 +303,7 @@ function LevelMaker.generate(width, height)
 
                                 table.insert(objects, pole)
                                 table.insert(objects, flag)
-                                obj.hit = true
+                                --obj.hit = true
                             end
                             gSounds['empty-block']:play()
                         end

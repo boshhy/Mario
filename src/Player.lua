@@ -12,7 +12,8 @@ Player = Class{__includes = Entity}
 
 function Player:init(def)
     Entity.init(self, def)
-    self.score = 0
+    -- Score will now follow player into next level, If starting score starts at 0
+    self.score = def.score
 end
 
 function Player:update(dt)

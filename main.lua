@@ -41,10 +41,9 @@ function love.load()
     }
     gStateMachine:change('start')
 
-    -- TODO put music back into game
-    --gSounds['music']:setLooping(true)
-    --gSounds['music']:setVolume(0.5)
-    --gSounds['music']:play()
+    gSounds['music']:setLooping(true)
+    gSounds['music']:setVolume(0.5)
+    gSounds['music']:play()
 
     love.keyboard.keysPressed = {}
 end
@@ -56,11 +55,6 @@ end
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
-    end
-
-    -- TODO Remove this (only for testing purposes)
-    if key == 'r' then
-        gStateMachine:change('play')
     end
 
     love.keyboard.keysPressed[key] = true

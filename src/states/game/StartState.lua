@@ -17,7 +17,11 @@ end
 
 function StartState:update(dt)
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
-        gStateMachine:change('play')
+        -- Start the player with a 16 tile wide level
+        gStateMachine:change('play', {
+            score = 0,
+            width = 16
+        })
     end
 end
 
